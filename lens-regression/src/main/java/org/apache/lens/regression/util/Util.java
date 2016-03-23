@@ -181,7 +181,7 @@ public class Util {
       unmarshaller = jaxbContext.createUnmarshaller();
       return (T) unmarshaller.unmarshal(reader);
     } catch (JAXBException e) {
-      System.out.println("Exception : " + e);
+      log.error("Exception : " + e);
       return null;
     }
   }
@@ -232,10 +232,10 @@ public class Util {
     return map;
   }
 
-  public static HashMap<String, String> stringListToMap(String paramList) throws Exception {
+/*  public static HashMap<String, String> stringListToMap(String paramList) throws Exception {
     StringList stringList = (StringList) Util.getObject(paramList, StringList.class);
     return stringListToMap(stringList);
-  }
+  }*/
 
   public static void changeConfig(HashMap<String, String> map, String remotePath) throws Exception {
     String fileName;
@@ -410,6 +410,30 @@ public class Util {
     } catch (DatatypeConfigurationException e) {
       log.info("Error converting date " + d, e);
       return null;
+    }
+  }
+
+  public static ArrayList<String> readFileIntoArray(String filePath) throws Exception {
+    ArrayList<String> tmp = new ArrayList<String>();
+    File file = new File(filePath);
+    BufferedReader br = new BufferedReader(new FileReader(file.getAbsoluteFile()));
+    String line = null;
+    while ((line = br.readLine()) != null){
+      tmp.add(line);
+    }
+    br.close();
+    return tmp;
+  }
+
+  public static void appendFile(String fileName, String str) {
+    try {
+      FileWriter fstream = new FileWriter(fileName, true);
+      BufferedWriter out = new BufferedWriter(fstream);
+      out.write(str);
+      out.close();
+      fstream.close();
+    } catch (Exception e) {
+      System.err.println("Error: " + e.getMessage());
     }
   }
 
