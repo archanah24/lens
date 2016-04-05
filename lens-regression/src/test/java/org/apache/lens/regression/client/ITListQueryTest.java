@@ -199,7 +199,6 @@ public class ITListQueryTest extends BaseTestClass {
 
   @Test(enabled = true)
   public void listQuerySpecificUserAllUser() throws Exception {
-
     String diffUser = "diff";
     String diffPass = "diff";
     String diffSessionHandleString = sHelper.openNewSession(diffUser, diffPass, lens.getCurrentDB());
