@@ -226,10 +226,10 @@ public class Util {
     return map;
   }
 
-  public static HashMap<String, String> stringListToMap(String paramList) throws Exception {
+/*  public static HashMap<String, String> stringListToMap(String paramList) throws Exception {
     StringList stringList = (StringList) Util.getObject(paramList, StringList.class);
     return stringListToMap(stringList);
-  }
+  }*/
 
   public static void changeConfig(HashMap<String, String> map, String remotePath) throws Exception {
     String fileName;
