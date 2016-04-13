@@ -147,7 +147,7 @@ public class ITListQueryTest extends BaseTestClass {
     Assert.assertTrue(list3.contains(queryHandle3), "List by Query Name failed");
   }
 
-  @Test(enabled = true)
+  @Test
   public void listQueryByTimeRange() throws Exception {
 
     //Running First Query
@@ -197,7 +197,7 @@ public class ITListQueryTest extends BaseTestClass {
   }
 
 
-  @Test(enabled = true)
+  @Test
   public void listQuerySpecificUserAllUser() throws Exception {
     String diffUser = "diff";
     String diffPass = "diff";
@@ -232,7 +232,7 @@ public class ITListQueryTest extends BaseTestClass {
   }
 
 
-  @Test(enabled = true)
+  @Test
   public void listQueryByTimeRangeQueryName() throws Exception {
 
     String queryName = "testQueryName";
@@ -256,7 +256,7 @@ public class ITListQueryTest extends BaseTestClass {
 
   }
 
-  @Test(enabled = true)
+  @Test
   public void listQueryByState() throws Exception {
     //Successful Query
     QueryHandle queryHandle1 = (QueryHandle) qHelper.executeQuery(QueryInventory.QUERY).getData();
@@ -307,7 +307,7 @@ public class ITListQueryTest extends BaseTestClass {
   }
 
 
-  @Test(enabled = true)
+  @Test
   public void listQueryByDriver() throws Exception {
 
     QueryHandle queryHandle1 = (QueryHandle) qHelper.executeQuery(QueryInventory.JDBC_CUBE_QUERY).getData();
@@ -339,7 +339,7 @@ public class ITListQueryTest extends BaseTestClass {
   }
 
 
-  @Test(enabled = true)
+  @Test
   public void listFinishedQueryByDriver() throws Exception {
 
     QueryHandle queryHandle1 = (QueryHandle) qHelper.executeQuery(QueryInventory.JDBC_CUBE_QUERY).getData();
@@ -378,7 +378,7 @@ public class ITListQueryTest extends BaseTestClass {
   }
 
 
-  @Test(enabled = true)
+  @Test
   public void listQueryByDriverNUser() throws Exception {
 
     QueryHandle q1 = (QueryHandle) qHelper.executeQuery(QueryInventory.JDBC_CUBE_QUERY).getData();
@@ -408,7 +408,7 @@ public class ITListQueryTest extends BaseTestClass {
   }
 
 
-  @Test(enabled = true)
+  @Test
   public void listQueryByDriverNStatus() throws Exception {
 
     String user = "new", pwd = "new";
@@ -456,7 +456,7 @@ public class ITListQueryTest extends BaseTestClass {
 
 
 
-  @Test(enabled = true)
+  @Test
   public void listQueryByNameStatusUserTimeRange() throws Exception {
 
     String queryName1 = "first", queryName2 = "second", queryName3 = "third";
