@@ -362,6 +362,7 @@ public class ITServerConfigTests extends BaseTestClass {
 
   //TODO : Need to implement this correctly
   //Rollover value is being ignored
+  @Test(enabled = false)
   public void testLensStatistics() throws Exception {
 
     try {
