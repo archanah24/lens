@@ -162,5 +162,6 @@ public class ITStreamingTests extends BaseTestClass {
     PersistentQueryResult result = (PersistentQueryResult) qhr.getResult();
     Assert.assertNotNull(result);
     Assert.assertEquals(result.getNumRows().intValue(), 8);
+
   }
 }
