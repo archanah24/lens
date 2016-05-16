@@ -24,6 +24,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+
 import javax.ws.rs.client.WebTarget;
 
 import org.apache.lens.api.query.LensQuery;
@@ -289,10 +290,8 @@ public class ITCostTests extends BaseTestClass {
       List<QueryHandle> running = null, queued = null;
       for (int t = 0; t < timeToWait; t = t + sleepTime) {
 
-        running = qHelper.getQueryHandleList(null, "RUNNING", "all", sessionHandleString, null, null,
-            hiveDriver);
-        queued = qHelper.getQueryHandleList(null, "QUEUED", "all", sessionHandleString, null, null,
-            hiveDriver);
+        running = qHelper.getQueryHandleList(null, "RUNNING", "all", sessionHandleString, null, null, hiveDriver);
+        queued = qHelper.getQueryHandleList(null, "QUEUED", "all", sessionHandleString, null, null, hiveDriver);
         logger.info("Running query count : " + running.size() + "\t Queued query count : " + queued.size());
 
         if (running.isEmpty() && queued.isEmpty()) {
