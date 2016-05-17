@@ -1723,15 +1723,8 @@
 
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
+            <artifactId>maven-failsafe-plugin</artifactId>
             <configuration>
-              <includes>
-                <!-- regression test would run with mvn clean install -P regression-tests -->
-                <include>**/IT*.java</include>
-              </includes>
-              <excludes>
-                <exclude>**/UT*.java</exclude>
-              </excludes>
               <forkedProcessTimeoutInSeconds>6200</forkedProcessTimeoutInSeconds>
             </configuration>
           </plugin>

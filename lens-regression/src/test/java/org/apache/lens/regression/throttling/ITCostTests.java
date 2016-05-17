@@ -24,7 +24,6 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-
 import javax.ws.rs.client.WebTarget;
 
 import org.apache.lens.api.query.LensQuery;
@@ -218,7 +217,7 @@ public class ITCostTests extends BaseTestClass {
   @Test(enabled = true, groups= "user-cost-ceiling")
   public void testCostCeilingWithProrityMaxConcurrent() throws Exception {
 
-    String query = String.format(QueryInventory.getQueryFromInventory("HIVE.SLEEP_COST_5"), "10");
+    String query = String.format(QueryInventory.getQueryFromInventory("HIVE.SLEEP_COST_5"), "5");
     HashMap<String, String> map = LensUtil.getHashMap(DriverConfig.MAX_CONCURRENT_QUERIES, "5",
         DriverConfig.PRIORITY_MAX_CONCURRENT, "HIGH=3");
 
@@ -264,7 +263,7 @@ public class ITCostTests extends BaseTestClass {
   @Test(enabled = true, groups= "user-cost-ceiling")
   public void multipleUserConcurrentPriorityThrottling() throws Exception {
 
-    String query = String.format(QueryInventory.getQueryFromInventory("HIVE.SLEEP_COST_5"), "10");
+    String query = String.format(QueryInventory.getQueryFromInventory("HIVE.SLEEP_COST_5"), "5");
     long timeToWait= 7 * SECONDS_IN_A_MINUTE; //in seconds
     int sleepTime = 5; //in seconds
     HashMap<String, String> map = LensUtil.getHashMap(DriverConfig.MAX_CONCURRENT_QUERIES, "5",
