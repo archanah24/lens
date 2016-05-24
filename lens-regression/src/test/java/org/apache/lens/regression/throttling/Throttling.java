@@ -245,7 +245,6 @@ public class Throttling extends BaseTestClass {
         String.valueOf(maxConcurrent), DriverConfig.PRIORITY_MAX_CONCURRENT,
         "LOW=" + String.valueOf(lowConCurrent) + ",VERY_LOW=" + String.valueOf(veryLowConcurrent),
         "NORMAL=" + String.valueOf(normalConcurrent) + ",HIGH=" + String.valueOf(highConcurrent));
-
     Util.changeConfig(map, hiveDriverConf);
     lens.restart();
 
@@ -571,4 +570,3 @@ public class Throttling extends BaseTestClass {
     }
   }
 }
-

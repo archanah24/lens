@@ -65,7 +65,7 @@ public class KillQueryTests extends BaseTestClass {
     sessionHandleString = lens.openSession(lens.getCurrentDB());
 
     //TODO : Enable when udf registration per driver is fixed
-/*    HadoopUtil.uploadJars(localJarPath + "/" + hiveUdfJar, hdfsJarPath);
+/*  HadoopUtil.uploadJars(localJarPath + "/" + hiveUdfJar, hdfsJarPath);
     logger.info("Adding jar for making query to run for longer period of time");
     sHelper.addResourcesJar(hdfsJarPath + "/" + hiveUdfJar);
     QueryHandle queryHandle = (QueryHandle) qHelper.executeQuery(QueryInventory.SLEEP_FUNCTION).getData();*/
