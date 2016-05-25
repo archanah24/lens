@@ -392,7 +392,6 @@ public class ITQueryApiTests extends BaseTestClass {
      and earlier is still queued or running, then return the same handle.
   */
 
-
   @DataProvider(name = "query_names")
   public Object[][] queryName() {
     String[][] testData = {{"query-name"}, {null}};
