@@ -1738,12 +1738,10 @@
             <configuration>
               <includes>
                 <!-- regression test would run with mvn clean install -P regression-tests -->
-                <!--include>**/IT*.java</include-->
-                <include>org.apache.lens.regression</include>
+                <include>**/IT*.java</include>
               </includes>
               <excludes>
-                <!--exclude>**/UT*.java</exclude-->
-                <exclude>org.apache.lens.*</exclude>
+                <exclude>**/UT*.java</exclude>
               </excludes>
               <forkedProcessTimeoutInSeconds>6200</forkedProcessTimeoutInSeconds>
             </configuration>
