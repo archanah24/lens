@@ -82,7 +82,7 @@ public class ITThrottlingTests extends BaseTestClass {
   @BeforeMethod(alwaysRun = true)
   public void setUp(Method method) throws Exception {
     logger.info("Test Name: " + method.getName());
-    Util.runRemoteCommand("cp " + hiveDriverConf + " " + backupConfFilePath);
+    Util.runRemoteCommand("sudo cp " + hiveDriverConf + " " + backupConfFilePath);
 
     sessionHandleString = sHelper.openSession(lens.getCurrentDB());
     session1 = sHelper.openSession("diff1", "diff1", lens.getCurrentDB());
@@ -102,7 +102,7 @@ public class ITThrottlingTests extends BaseTestClass {
     sHelper.closeSession(session2);
     sHelper.closeSession(sessionHandleString);
 
-    Util.runRemoteCommand("cp " + backupConfFilePath + " " + hiveDriverConf);
+    Util.runRemoteCommand("sudo cp " + backupConfFilePath + " " + hiveDriverConf);
   }
 
   @AfterClass(alwaysRun = true)
@@ -117,6 +117,7 @@ public class ITThrottlingTests extends BaseTestClass {
     HashMap<String, String> map = LensUtil.getHashMap(DriverConfig.MAX_CONCURRENT_QUERIES, "2");
     Util.changeConfig(map, hiveDriverConf);
     lens.restart();
+
 
     List<QueryHandle> handleList = new ArrayList<>();
     handleList.add((QueryHandle) qHelper.executeQuery(SLEEP_QUERY).getData());
@@ -380,7 +381,7 @@ public class ITThrottlingTests extends BaseTestClass {
   }
 
 
-  @Test(enabled = true)
+  @Test(enabled = false)
   public void enableQueueThrottlingWithExistingQueuedQueries() throws Exception {
 
     long timeToWait= 5 * SECONDS_IN_A_MINUTE; // in seconds
@@ -463,7 +464,7 @@ public class ITThrottlingTests extends BaseTestClass {
     sHelper.setAndValidateParam(session2, LensConfConstants.MAPRED_JOB_QUEUE_NAME, queue2);
 
     QueryStatus.Status[] expectedStatus = {QueryStatus.Status.RUNNING, QueryStatus.Status.QUEUED,
-      QueryStatus.Status.QUEUED, QueryStatus.Status.RUNNING, QueryStatus.Status.RUNNING,
+      QueryStatus.Status.QUEUED, QueryStatus.Status.RUNNING, QueryStatus.Status.QUEUED,
       QueryStatus.Status.RUNNING, QueryStatus.Status.QUEUED, QueryStatus.Status.QUEUED, };
 
     List<QueryHandle> handleList = new ArrayList<>();
@@ -583,7 +584,7 @@ public class ITThrottlingTests extends BaseTestClass {
 
     String newSession = sHelper.openSession("user", "pwd", lens.getCurrentDB());
     sHelper.setAndValidateParam(newSession, LensConfConstants.MAPRED_JOB_QUEUE_NAME, queue2);
-    handleList.add((QueryHandle) qHelper.executeQuery(QueryInventory.SLEEP_QUERY, null, newSession).getData());
+    handleList.add((QueryHandle) qHelper.executeQuery(QueryInventory.getSleepQuery("10"), null, newSession).getData());
 
     for(int i=0; i<2; i++){
       handleList.add((QueryHandle) qHelper.executeQuery(QueryInventory.HIVE_CUBE_QUERY).getData());

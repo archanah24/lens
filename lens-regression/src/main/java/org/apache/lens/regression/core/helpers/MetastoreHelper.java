@@ -245,7 +245,6 @@ public class MetastoreHelper extends ServiceManagerHelper {
         MediaType.APPLICATION_XML_TYPE);
     AssertUtil.assertSucceededResponse(response);
     String responseString = response.readEntity(String.class);
-    log.info(responseString);
     XCube cube = (XCube) Util.extractObject(responseString, XCube.class);
     return cube;
   }
@@ -261,9 +260,7 @@ public class MetastoreHelper extends ServiceManagerHelper {
     Response response = this.exec("get", MetastoreURL.METASTORE_FACTS_URL + "/" + factName, servLens, null, query,
         MediaType.APPLICATION_XML_TYPE);
     AssertUtil.assertSucceededResponse(response);
-    String responseString = response.readEntity(String.class);
-    log.info(responseString);
-    XFactTable fact = (XFactTable) Util.extractObject(responseString, XFactTable.class);
+    XFactTable fact = response.readEntity(new GenericType<XFactTable>(){});
     return fact;
   }
 

@@ -184,6 +184,11 @@ public class QueryHelper extends ServiceManagerHelper {
     return result;
   }
 
+
+  public LensAPIResult executeQuery(String queryString, String session, LensConf conf) throws  LensException {
+    return executeQuery(queryString, null, null, session, conf);
+  }
+
   public LensAPIResult executeQueryTimeout(String queryString, String timeout, String queryName,
       String sessionHandleString, LensConf conf) throws LensException {
     FormBuilder formData = new FormBuilder();
@@ -228,7 +233,6 @@ public class QueryHelper extends ServiceManagerHelper {
     Response response = this.exec("post", "/queryapi/queries", servLens, null, null, MediaType.MULTIPART_FORM_DATA_TYPE,
         MediaType.APPLICATION_XML, formData.getForm());
     LensAPIResult<QueryPlan> result = response.readEntity(new GenericType<LensAPIResult<QueryPlan>>(){});
-    log.info("QueryPlan String:{}", result);
     return result;
   }
 
@@ -754,7 +758,7 @@ public class QueryHelper extends ServiceManagerHelper {
     LensQuery lensQuery = response.readEntity(new GenericType<LensQuery>(){});
 
     while (!lensQuery.getStatus().finished()) {
-      log.info("Waiting...");
+      log.info("Waiting for query " + queryHandle + " to finish");
       Thread.sleep(1000);
       response = this.exec("get", QueryURL.QUERY_URL + "/" + queryHandle.toString(), servLens, null, query,
           inputMediaType, outputMediaType);
@@ -822,6 +826,10 @@ public class QueryHelper extends ServiceManagerHelper {
     AssertUtil.assertSucceededResponse(response);
     LensQuery lensQuery = response.readEntity(new GenericType<LensQuery>(){});
     return lensQuery;
+  }
+
+  public LensQuery getLensQuery(QueryHandle queryHandle) throws LensException {
+    return getLensQuery(sessionHandleString, queryHandle);
   }
 
   public QueryStatus getQueryStatus(QueryHandle queryHandle) throws LensException {

@@ -28,7 +28,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.lens.api.LensConf;
-import org.apache.lens.api.Priority;
 import org.apache.lens.api.query.*;
 import org.apache.lens.api.result.LensAPIResult;
 import org.apache.lens.cube.parse.CubeQueryConfUtil;
@@ -48,7 +47,9 @@ import org.apache.log4j.Logger;
 import org.testng.Assert;
 import org.testng.annotations.*;
 
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class ITQueryApiTests extends BaseTestClass {
 
   WebTarget servLens;
@@ -56,6 +57,7 @@ public class ITQueryApiTests extends BaseTestClass {
 
   String lensSiteConf = lens.getServerDir() + "/conf/lens-site.xml";
   private static Logger logger = Logger.getLogger(ITQueryApiTests.class);
+  String url = lens.getParam("remote.ssh-service.url");
 
   @BeforeClass(alwaysRun = true)
   public void initialize() throws Exception {
@@ -97,6 +99,7 @@ public class ITQueryApiTests extends BaseTestClass {
     QueryPlan queryPlan = (QueryPlan) qHelper.explainQuery(QueryInventory.HIVE_DIM_QUERY).getData();
     Assert.assertNotNull(queryPlan.getPlanString());
     Assert.assertFalse(queryPlan.getPlanString().isEmpty());
+    Assert.assertTrue(queryPlan.getQueryCost().getEstimatedResourceUsage() > 0);
 
     // sample_dim is present in hive and db. Lens should choose the db one
     queryPlan = (QueryPlan) qHelper.explainQuery(QueryInventory.DIM_QUERY).getData();
@@ -129,7 +132,7 @@ public class ITQueryApiTests extends BaseTestClass {
      Here query handle is in json which cannot be passed to get query status
   */
 
-  @Test(enabled = false)
+  @Test(enabled = true)
   public void testExecuteJson() throws Exception {
     QueryHandle handle = (QueryHandle) qHelper.executeQuery(QueryInventory.JDBC_CUBE_QUERY, null,
         sessionHandleString, null, MediaType.APPLICATION_JSON).getData();
@@ -360,7 +363,7 @@ public class ITQueryApiTests extends BaseTestClass {
     sHelper.setAndValidateParam(CubeQueryConfUtil.FAIL_QUERY_ON_PARTIAL_DATA, "false");
     sHelper.setAndValidateParam(LensConfConstants.QUERY_PERSISTENT_RESULT_SET, serverPersistent);
     sHelper.setAndValidateParam(LensConfConstants.QUERY_PERSISTENT_RESULT_INDRIVER, driverPersistent);
-    String query = QueryInventory.getSleepQuery("5");
+    String query = QueryInventory.getSleepQuery("10");
 
     //checking for default value
     QueryHandleWithResultSet qhr1 = (QueryHandleWithResultSet) qHelper.executeQueryTimeout(query, "10",
@@ -429,7 +432,7 @@ public class ITQueryApiTests extends BaseTestClass {
 
     Response response = lens.exec("post", QueryURL.QUERY_URL, servLens, null, null, MediaType.MULTIPART_FORM_DATA_TYPE,
         MediaType.APPLICATION_XML, formData.getForm());
-    AssertUtil.assertBadRequest(response);
+    AssertUtil.assertGone(response);
     LensAPIResult result = response.readEntity(new GenericType<LensAPIResult>() {
     });
     Assert.assertEquals(result.getErrorCode(), 2005);
@@ -441,6 +444,7 @@ public class ITQueryApiTests extends BaseTestClass {
 
     try{
       HashMap<String, String> map = LensUtil.getHashMap(LensConfConstants.PURGE_INTERVAL, "3000");
+      Util.changeConfig(map, lensSiteConf, null, url);
       Util.changeConfig(map, lensSiteConf);
       lens.restart();
 
@@ -450,23 +454,14 @@ public class ITQueryApiTests extends BaseTestClass {
       qHelper.waitForCompletion(q1);
       qHelper.waitForCompletion(q2);
 
-<<<<<<< 97fe26d3ca0db9b383c8d86feb6bb7b00cacdc7e
       String hiveDriverQuery = "INSERT OVERWRITE DIRECTORY \""+lens.getServerHdfsUrl()+"/tmp/lensreports/hdfsout/"
           + q1 + "\" ROW FORMAT SERDE 'org.apache.lens.lib.query.CSVSerde' STORED AS TEXTFILE SELECT "
           + "(sample_dim2.id), (sample_dim2.name) FROM "+lens.getCurrentDB()+".local_dim_table2 sample_dim2 WHERE "
-          + "((((sample_dim2.name) != 'first') AND ((sample_dim2.dt = 'latest'))))";
+          + "((sample_dim2.name) != 'first') AND ((sample_dim2.dt = 'latest'))";
 
       String jdbcDriverQuery = "SELECT (sample_db_dim.id), (sample_db_dim.name) FROM " + lens.getCurrentDB()
           + ".mydb_dim_table3 sample_db_dim WHERE ((((sample_db_dim.name) != 'first')))";
-=======
-      String hiveDriverQuery = "INSERT OVERWRITE DIRECTORY \""+lens.getServerHdfsUrl()+"/tmp/lensreports/hdfsout/" +
-          q1 + "\" ROW FORMAT SERDE 'org.apache.lens.lib.query.CSVSerde' STORED AS TEXTFILE SELECT " +
-          "(sample_dim2.id), (sample_dim2.name) FROM "+lens.getCurrentDB()+".local_dim_table2 sample_dim2 WHERE " +
-          "((((sample_dim2.name) != 'first') AND ((sample_dim2.dt = 'latest'))))";
 
-      String jdbcDriverQuery = "SELECT (sample_db_dim.id), (sample_db_dim.name) FROM " + lens.getCurrentDB() +
-          ".mydb_dim_table3 sample_db_dim WHERE ((((sample_db_dim.name) != 'first')))";
->>>>>>> develop patch
 
       //Waiting for query to get purged
       Thread.sleep(5000);
@@ -491,14 +486,13 @@ public class ITQueryApiTests extends BaseTestClass {
     sHelper.setAndValidateParam(CubeQueryConfUtil.FAIL_QUERY_ON_PARTIAL_DATA, "false");
     sHelper.setAndValidateParam(LensConfConstants.QUERY_PERSISTENT_RESULT_SET, "true");
     sHelper.setAndValidateParam(LensConfConstants.QUERY_PERSISTENT_RESULT_INDRIVER, "false");
-    String query = QueryInventory.getSleepQuery("10");
+    String query = QueryInventory.getSleepQuery("1");
 
     Long t1 = System.currentTimeMillis();
     QueryHandleWithResultSet qhr1 = (QueryHandleWithResultSet) qHelper.executeQueryTimeout(query, "80000",
         null, sessionHandleString).getData();
     Long t2 = System.currentTimeMillis();
     long diff = (t2 - t1)/1000;
-    Assert.assertTrue(diff < 20); // adding 10 seconds extra buffer time
+    Assert.assertTrue(diff < 30); // adding 10 seconds extra buffer time
   }
-
 }

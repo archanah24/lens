@@ -150,10 +150,14 @@ public class ITSessionConfigTests extends BaseTestClass{
   //Test for session properties lens.query.result.parent.dir
 
   @DataProvider(name="path_provider")
-  public Object[][] pathProvider() throws JSchException, IOException{
+  public Object[][] pathProvider() throws Exception {
 
-    Util.runRemoteCommand("mkdir /tmp/temporary");
-    Util.runRemoteCommand("chmod -R 777 /tmp/temporary");
+    try{
+      Util.runRemoteCommand("mkdir -p /tmp/temporary");
+      Util.runRemoteCommand("chmod -R 777 /tmp/temporary");
+    }catch(RuntimeException e){
+      logger.error(e.getStackTrace());
+    }
 
     String[][] path = { {"file://" + queryResultParentDirPath, "local"},
                         {lens.getServerHdfsUrl() + queryResultParentDirPath, "hdfs"},

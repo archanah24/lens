@@ -96,6 +96,8 @@ public class ITScheduleQueryTests extends BaseTestClass {
     Assert.assertEquals(jobInfo.getJob().getName(), "job-submit-schedule");
   }
 
+  //TODO : Add tests with query conf and session conf.
+
   //submit and schedule and also get job definition
   @Test
   public void submitNScheduleQueryCronExp() throws Exception {
@@ -276,11 +278,11 @@ public class ITScheduleQueryTests extends BaseTestClass {
 
 
   //LENS-1286
-  @Test
+  @Test(enabled = true)
   public void testRunningInstanceOnRestart() throws Exception {
 
     String startDate = Util.modifyDate(Util.getCurrentDate(format), format, Calendar.SECOND, 2);
-    String endDate = Util.modifyDate(startDate, format, Calendar.SECOND, 15);
+    String endDate = Util.modifyDate(startDate, format, Calendar.SECOND, 30);
     XJob xJob = scheduleHelper.getXJob("job-restart", QueryInventory.getSleepQuery("5"), null, startDate, endDate,
         "0/10 * * * * ?");
     String jobHandle = scheduleHelper.submitNScheduleJob(xJob, sessionHandleString);
@@ -297,11 +299,14 @@ public class ITScheduleQueryTests extends BaseTestClass {
 
     SchedulerJobInstanceRun instanceRun = instanceInfo.getInstanceRunList().get(0);
     qHelper.waitForCompletion(instanceRun.getQueryHandle());
+
+    instanceRun = scheduleHelper.getInstanceDetails(instanceList.get(0).getId()
+        .getHandleIdString(), sessionHandleString).getData().getInstanceRunList().get(0);
     Assert.assertEquals(instanceRun.getInstanceState(), SchedulerJobInstanceState.SUCCEEDED);
 
   }
 
-  @Test(enabled = false)
+  @Test(enabled = true)
   public void testQueryNotFoundCaseOnRestart() throws Exception {
 
     String startDate = Util.modifyDate(Util.getCurrentDate(format), format, Calendar.SECOND, 2);

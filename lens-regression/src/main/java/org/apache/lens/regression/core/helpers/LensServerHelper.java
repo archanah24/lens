@@ -19,16 +19,12 @@
 
 package org.apache.lens.regression.core.helpers;
 
-import java.io.IOException;
-
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.lens.regression.util.AssertUtil;
 import org.apache.lens.regression.util.Util;
-import org.apache.lens.server.api.error.LensException;
 
-import com.jcraft.jsch.JSchException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -46,30 +42,20 @@ public class LensServerHelper extends ServiceManagerHelper {
    * Restart Lens server
    */
 
-  public void restart() throws JSchException, IOException, InterruptedException, LensException {
-    int counter = 0;
-    Util.runRemoteCommand("bash /usr/local/lens/server/bin/lens-ctl stop");
-    Util.runRemoteCommand("bash /usr/local/lens/server/bin/lens-ctl start");
-
-    Response response = this.exec("get", "", servLens, null, null, MediaType.TEXT_PLAIN_TYPE, MediaType.TEXT_PLAIN);
-    while (response == null && counter < 80) {
-      log.info("Waiting for Lens server to come up ");
-      Thread.sleep(1000);
-      response = this.exec("get", "", servLens, null, null, MediaType.TEXT_PLAIN_TYPE, MediaType.TEXT_PLAIN);
-      counter++;
-    }
-
-    AssertUtil.assertSucceededResponse(response);
+  public void restart() throws Exception {
+    stop();
+    start();
   }
 
-  public void stop() throws JSchException, IOException, InterruptedException, LensException {
-    int counter = 0;
-    Util.runRemoteCommand("bash /usr/local/lens/server/bin/lens-ctl stop");
+  public void stop() throws Exception {
+    String user = configProp.getProperty("lens.remote.username");
+    Util.runRemoteCommand("sudo -u " + user + " bash /usr/local/lens/server/bin/lens-ctl stop");
   }
 
-  public void start() throws JSchException, IOException, InterruptedException, LensException {
+  public void start() throws Exception {
     int counter = 0;
-    Util.runRemoteCommand("bash /usr/local/lens/server/bin/lens-ctl start");
+    String user = configProp.getProperty("lens.remote.username");
+    Util.runRemoteCommand("sudo -u " + user + " bash /usr/local/lens/server/bin/lens-ctl start");
 
     Response response = this.exec("get", "", servLens, null, null, MediaType.TEXT_PLAIN_TYPE, MediaType.TEXT_PLAIN);
     while (response == null && counter < 40) {

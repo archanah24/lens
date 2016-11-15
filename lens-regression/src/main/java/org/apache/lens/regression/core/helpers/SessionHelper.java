@@ -242,4 +242,37 @@ public class SessionHelper extends ServiceManagerHelper {
     return sessionInfoList;
   }
 
+  public long getSessionLastAccesTime(String session) throws Exception {
+
+    List<UserSessionInfo> sessionList = getSessionList();
+    log.info("session list size : " + sessionList.size());
+    long accessTime = 0;
+
+    for (int i = 0; i < sessionList.size(); i++) {
+      if (session.contains(sessionList.get(i).getHandle())) {
+        accessTime = sessionList.get(i).getLastAccessTime();
+        log.info("Session matches, access time : " + accessTime);
+        return accessTime;
+      }
+    }
+
+    log.info("");
+    return accessTime;
+  }
+
+  public long getSessionCreationTime(String session) throws Exception {
+    List<UserSessionInfo> sessionList = getSessionList();
+    log.info("session list size : " + sessionList.size());
+    long creationTime = 0;
+
+    for (int i = 0; i < sessionList.size(); i++) {
+      if (session.contains(sessionList.get(i).getHandle())) {
+        creationTime = sessionList.get(i).getCreationTime();
+        log.info("Session matches, creation time : " + creationTime);
+        return creationTime;
+      }
+    }
+    return creationTime;
+  }
+
 }

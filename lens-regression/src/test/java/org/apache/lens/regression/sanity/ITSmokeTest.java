@@ -31,8 +31,6 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.jcraft.jsch.JSchException;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -81,7 +79,7 @@ public class ITSmokeTest extends BaseTestClass {
     Assert.assertTrue(compareFile(smokeOutput, resultFile), "Result Validation Failed");
   }
 
-  private void waitToComplete() throws IOException, JSchException, InterruptedException {
+  private void waitToComplete() throws Exception {
     boolean loop = true;
     while (loop) {
       String output = Util.runRemoteCommand("ps -ef | grep org.apache.lens.examples.SampleQueries | grep -v \"grep\" ");

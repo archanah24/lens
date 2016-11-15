@@ -32,12 +32,13 @@ import org.apache.lens.regression.core.helpers.*;
 import org.apache.lens.regression.core.testHelper.BaseTestClass;
 import org.apache.lens.server.api.error.LensException;
 
-import org.apache.log4j.Logger;
 
 import org.testng.Assert;
 import org.testng.annotations.*;
 
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class ITListQueryTest extends BaseTestClass {
 
   WebTarget servLens;
@@ -46,23 +47,21 @@ public class ITListQueryTest extends BaseTestClass {
   String jdbcDriver = "jdbc/jdbc1", hiveDriver = "hive/hive1";
   String sleepQuery = QueryInventory.getSleepQuery("5");
 
-  private static Logger logger = Logger.getLogger(ITListQueryTest.class);
-
   @BeforeClass(alwaysRun = true)
   public void initialize() throws IOException, JAXBException, LensException {
     servLens = ServiceManagerHelper.init();
-    logger.info("Creating a new Session");
+    log.info("Creating a new Session");
   }
 
   @BeforeMethod(alwaysRun = true)
   public void setUp(Method method) throws Exception {
-    logger.info("Test Name: " + method.getName());
+    log.info("Test Name: " + method.getName());
     sessionHandleString = sHelper.openSession(lens.getCurrentDB());
   }
 
   @AfterMethod(alwaysRun = true)
   public void afterMethod(Method method) throws Exception {
-    logger.info("Test Name: " + method.getName());
+    log.info("Test Name: " + method.getName());
     qHelper.killQuery(null, "QUEUED", "all");
     qHelper.killQuery(null, "RUNNING", "all");
     if (sessionHandleString != null){
@@ -73,7 +72,7 @@ public class ITListQueryTest extends BaseTestClass {
 
   @AfterClass(alwaysRun = true)
   public void closeSession() throws Exception {
-    logger.info("Closing Session");
+    log.info("Closing Session");
   }
 
   @DataProvider(name = "query-provider")
@@ -151,23 +150,23 @@ public class ITListQueryTest extends BaseTestClass {
 
     //Running First Query
     String startTime = String.valueOf(System.currentTimeMillis());
-    logger.info("Start Time of 1st Query : " + startTime);
+    log.info("Start Time of 1st Query : " + startTime);
     QueryHandle queryHandle = (QueryHandle) qHelper.executeQuery(QueryInventory.QUERY).getData();
     LensQuery lensQuery = qHelper.waitForCompletion(queryHandle);
     Assert.assertEquals(lensQuery.getStatus().getStatus(), QueryStatus.Status.SUCCESSFUL, "Query did not succeed");
     String endTime = String.valueOf(System.currentTimeMillis());
-    logger.info("End Time of 1st Query : " + endTime);
+    log.info("End Time of 1st Query : " + endTime);
 
     Thread.sleep(1000);
 
     //Running Second Query
     String startTime1 = String.valueOf(System.currentTimeMillis());
-    logger.info("Start Time of 2nd Query : " + startTime1);
+    log.info("Start Time of 2nd Query : " + startTime1);
     QueryHandle queryHandle1 = (QueryHandle) qHelper.executeQuery(QueryInventory.QUERY).getData();
     lensQuery = qHelper.waitForCompletion(queryHandle1);
     Assert.assertEquals(lensQuery.getStatus().getStatus(), QueryStatus.Status.SUCCESSFUL, "Query did not succeed");
     String endTime1 = String.valueOf(System.currentTimeMillis());
-    logger.info("End Time of 2nd Query : " + endTime1);
+    log.info("End Time of 2nd Query : " + endTime1);
 
     List<QueryHandle> list = qHelper.getQueryHandleList(null, null, null, sessionHandleString, startTime, endTime);
     Assert.assertTrue(list.contains(queryHandle), "QueryList by TimeRange is not correct");
@@ -228,14 +227,14 @@ public class ITListQueryTest extends BaseTestClass {
     String queryName = "testQueryName";
 
     String startTime = String.valueOf(System.currentTimeMillis());
-    logger.info("Start Time of 1st Query : " + startTime);
+    log.info("Start Time of 1st Query : " + startTime);
 
     QueryHandle queryHandle = (QueryHandle) qHelper.executeQuery(QueryInventory.QUERY, queryName).getData();
     LensQuery lensQuery = qHelper.waitForCompletion(queryHandle);
     Assert.assertEquals(lensQuery.getStatus().getStatus(), QueryStatus.Status.SUCCESSFUL, "Query did not succeed");
 
     String endTime = String.valueOf(System.currentTimeMillis());
-    logger.info("End Time of 1st Query : " + endTime);
+    log.info("End Time of 1st Query : " + endTime);
 
     List<QueryHandle> list = qHelper.getQueryHandleList(queryName, null, null, sessionHandleString, startTime, endTime);
     Assert.assertTrue(list.contains(queryHandle), "QueryList by TimeRange is not correct");

@@ -44,7 +44,6 @@ import org.apache.lens.regression.util.AssertUtil;
 import org.apache.lens.server.api.LensConfConstants;
 import org.apache.lens.server.api.error.LensException;
 
-import org.apache.log4j.Logger;
 
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
@@ -52,6 +51,9 @@ import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.testng.Assert;
 import org.testng.annotations.*;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class ITPreparedQueryTests extends BaseTestClass {
 
   WebTarget servLens;
@@ -63,25 +65,22 @@ public class ITPreparedQueryTests extends BaseTestClass {
     defaultParams.put(LensConfConstants.QUERY_PERSISTENT_RESULT_INDRIVER, "false");
   }
 
-  private static Logger logger = Logger.getLogger(ITPreparedQueryTests.class);
-
-
   @BeforeClass(alwaysRun = true)
   public void initialize() throws IOException, JAXBException, LensException {
     servLens = ServiceManagerHelper.init();
-    logger.info("Creating a new Session");
+    log.info("Creating a new Session");
   }
 
   @BeforeMethod(alwaysRun = true)
   public void setUp(Method method) throws Exception {
     sessionHandleString = sHelper.openSession(lens.getCurrentDB());
-    logger.info("Test Name: " + method.getName());
+    log.info("Test Name: " + method.getName());
   }
 
 
   @AfterMethod(alwaysRun = true)
   public void afterMethod(Method method) throws Exception {
-    logger.info("Test Name: " + method.getName());
+    log.info("Test Name: " + method.getName());
     if (sessionHandleString != null){
       sHelper.closeSession();
     }
@@ -90,7 +89,7 @@ public class ITPreparedQueryTests extends BaseTestClass {
 
   @AfterClass(alwaysRun = true)
   public void closeSession() throws Exception {
-    logger.info("Closing Session");
+    log.info("Closing Session");
   }
 
   @Test
@@ -99,7 +98,7 @@ public class ITPreparedQueryTests extends BaseTestClass {
     sHelper.setAndValidateParam(defaultParams);
     QueryPrepareHandle queryPrepareHandle = qHelper.submitPreparedQuery(QueryInventory.JDBC_DIM_QUERY);
     Assert.assertNotNull(queryPrepareHandle, "Query Execute Failed");
-    logger.info("PREPARE QUERY HANDLE : " + queryPrepareHandle);
+    log.info("PREPARE QUERY HANDLE : " + queryPrepareHandle);
 
     QueryHandle queryHandle = qHelper.executePreparedQuery(queryPrepareHandle);
     LensQuery lensQuery = qHelper.waitForCompletion(queryHandle);
@@ -108,14 +107,14 @@ public class ITPreparedQueryTests extends BaseTestClass {
     Assert.assertEquals(result.getRows().size(), 2);
   }
 
-  // This is failing
+  // TODO : This is failing, Need to debug
   @Test(enabled = true)
   public void testPrepareAndExecuteTimeoutPreparedQuery()  throws Exception {
 
     sHelper.setAndValidateParam(defaultParams);
     QueryPrepareHandle queryPrepareHandle = qHelper.submitPreparedQuery(QueryInventory.QUERY);
     Assert.assertNotNull(queryPrepareHandle, "Query Execute Failed");
-    logger.info("PREPARE QUERY HANDLE : " + queryPrepareHandle);
+    log.info("PREPARE QUERY HANDLE : " + queryPrepareHandle);
 
     QueryHandleWithResultSet queryHandleResultSet = qHelper.executePreparedQueryTimeout(queryPrepareHandle, "60000");
     InMemoryQueryResult result = (InMemoryQueryResult) queryHandleResultSet.getResult();
@@ -127,7 +126,7 @@ public class ITPreparedQueryTests extends BaseTestClass {
 
     QueryPrepareHandle queryPrepareHandle = qHelper.submitPreparedQuery(QueryInventory.QUERY);
     Assert.assertNotNull(queryPrepareHandle, "Query Execute Failed");
-    logger.info("PREPARE QUERY HANDLE : " + queryPrepareHandle);
+    log.info("PREPARE QUERY HANDLE : " + queryPrepareHandle);
 
     MapBuilder query = new MapBuilder("sessionid", sessionHandleString,
         "prepareHandle", queryPrepareHandle.toString()
@@ -136,10 +135,10 @@ public class ITPreparedQueryTests extends BaseTestClass {
     Response response = qHelper.getPreparedQuery(queryPrepareHandle);
     AssertUtil.assertSucceededResponse(response);
 
-    logger.info("Deleting Prepared Query");
+    log.info("Deleting Prepared Query");
     qHelper.destoryPreparedQueryByHandle(queryPrepareHandle);
 
-    logger.info("Get Should now give 404");
+    log.info("Get Should now give 404");
     response = qHelper.getPreparedQuery(queryPrepareHandle);
     AssertUtil.assertNotFound(response);
   }
@@ -149,18 +148,18 @@ public class ITPreparedQueryTests extends BaseTestClass {
 
     QueryPrepareHandle queryPrepareHandle = qHelper.submitPreparedQuery(QueryInventory.QUERY);
     Assert.assertNotNull(queryPrepareHandle, "Query Execute Failed");
-    logger.info("PREPARE QUERY HANDLE : " + queryPrepareHandle);
+    log.info("PREPARE QUERY HANDLE : " + queryPrepareHandle);
 
     MapBuilder query = new MapBuilder("sessionid", sessionHandleString,
         "prepareHandle", queryPrepareHandle.toString()
     );
 
-    logger.info("Get Should be Successful");
+    log.info("Get Should be Successful");
     Response response = lens.exec("get", QueryURL.PREPAREDQUERY_URL + "/" + queryPrepareHandle.toString(),
         servLens, null, query);
     AssertUtil.assertSucceededResponse(response);
 
-    logger.info("Modifying PreparedQuery conf");
+    log.info("Modifying PreparedQuery conf");
 
     LensConf lensConf = new LensConf();
     lensConf.addProperty(LensConfConstants.RESULT_SET_PARENT_DIR, "hdfs://lens-test:8020/tmp/lensreports");
@@ -174,13 +173,13 @@ public class ITPreparedQueryTests extends BaseTestClass {
         MediaType.MULTIPART_FORM_DATA_TYPE, MediaType.APPLICATION_XML, formData.getForm());
     AssertUtil.assertSucceededResponse(response);
 
-    logger.info("Get Should be Successful");
+    log.info("Get Should be Successful");
     response = lens.exec("get", QueryURL.PREPAREDQUERY_URL + "/" + queryPrepareHandle.toString(),
         servLens, null, query);
     AssertUtil.assertSucceededResponse(response);
 
     LensPreparedQuery gq = response.readEntity(new GenericType<LensPreparedQuery>(){});
-    logger.info("Modified Conf : " + gq.getConf().getProperties().get("lens.query.result.parent.dir"));
+    log.info("Modified Conf : " + gq.getConf().getProperties().get("lens.query.result.parent.dir"));
     Assert.assertEquals(gq.getConf().getProperties().get(LensConfConstants.RESULT_SET_PARENT_DIR),
         "hdfs://lens-test:8020/tmp/lensreports", "Update on Prepared Query Failed!!");
   }
@@ -191,11 +190,11 @@ public class ITPreparedQueryTests extends BaseTestClass {
 
     QueryPrepareHandle queryPrepareHandle = qHelper.submitPreparedQuery(QueryInventory.QUERY);
     Assert.assertNotNull(queryPrepareHandle, "Query Execute Failed");
-    logger.info("PREPARE QUERY HANDLE : " + queryPrepareHandle);
+    log.info("PREPARE QUERY HANDLE : " + queryPrepareHandle);
 
     QueryPrepareHandle queryPrepareHandle1 = qHelper.submitPreparedQuery(QueryInventory.QUERY);
     Assert.assertNotNull(queryPrepareHandle1, "Query Execute Failed");
-    logger.info("PREPARE QUERY HANDLE : " + queryPrepareHandle1);
+    log.info("PREPARE QUERY HANDLE : " + queryPrepareHandle1);
 
     List<QueryPrepareHandle> list = qHelper.getPreparedQueryHandleList();
 
@@ -213,11 +212,11 @@ public class ITPreparedQueryTests extends BaseTestClass {
 
     QueryPrepareHandle queryPrepareHandle = qHelper.submitPreparedQuery(QueryInventory.QUERY, name1);
     Assert.assertNotNull(queryPrepareHandle, "Query Execute Failed");
-    logger.info("PREPARE QUERY HANDLE : " + queryPrepareHandle);
+    log.info("PREPARE QUERY HANDLE : " + queryPrepareHandle);
 
     QueryPrepareHandle queryPrepareHandle1 = qHelper.submitPreparedQuery(QueryInventory.QUERY, name2);
     Assert.assertNotNull(queryPrepareHandle1, "Query Execute Failed");
-    logger.info("PREPARE QUERY HANDLE : " + queryPrepareHandle1);
+    log.info("PREPARE QUERY HANDLE : " + queryPrepareHandle1);
 
     List<QueryPrepareHandle> list = qHelper.getPreparedQueryHandleList(name1);
     Assert.assertTrue(list.contains(queryPrepareHandle), "List of All QueryPreparedHandle By QueryName failed");
@@ -243,11 +242,11 @@ public class ITPreparedQueryTests extends BaseTestClass {
 
     QueryPrepareHandle queryPrepareHandle1 = qHelper.submitPreparedQuery(QueryInventory.QUERY);
     Assert.assertNotEquals(queryPrepareHandle1, null, "Query Execute Failed");
-    logger.info("PREPARE QUERY HANDLE : " + queryPrepareHandle1);
+    log.info("PREPARE QUERY HANDLE : " + queryPrepareHandle1);
 
     QueryPrepareHandle queryPrepareHandle2 = qHelper.submitPreparedQuery(QueryInventory.QUERY, null, session1);
     Assert.assertNotEquals(queryPrepareHandle2, null, "Query Execute Failed");
-    logger.info("PREPARE QUERY HANDLE : " + queryPrepareHandle2);
+    log.info("PREPARE QUERY HANDLE : " + queryPrepareHandle2);
 
     List<QueryPrepareHandle> list = qHelper.getPreparedQueryHandleList(null, lens.getUserName());
     Assert.assertTrue(list.contains(queryPrepareHandle1), "List of All QueryPreparedHandle By user failed");
@@ -267,27 +266,27 @@ public class ITPreparedQueryTests extends BaseTestClass {
 
     //Submitting First Query
     String startTime = String.valueOf(System.currentTimeMillis());
-    logger.info("Start Time of 1st Query : " + startTime);
+    log.info("Start Time of 1st Query : " + startTime);
 
     QueryPrepareHandle queryPrepareHandle1 = qHelper.submitPreparedQuery(QueryInventory.QUERY);
     Assert.assertNotEquals(queryPrepareHandle1, null, "Query Execute Failed");
-    logger.info("PREPARE QUERY HANDLE : " + queryPrepareHandle1);
+    log.info("PREPARE QUERY HANDLE : " + queryPrepareHandle1);
 
     String endTime = String.valueOf(System.currentTimeMillis());
-    logger.info("End Time of 1st Query : " + endTime);
+    log.info("End Time of 1st Query : " + endTime);
 
     Thread.sleep(1000);
 
     //Submitting Second Query
     String startTime1 = String.valueOf(System.currentTimeMillis());
-    logger.info("Start Time of 2nd Query : " + startTime1);
+    log.info("Start Time of 2nd Query : " + startTime1);
 
     QueryPrepareHandle queryPrepareHandle2 = qHelper.submitPreparedQuery(QueryInventory.QUERY);
     Assert.assertNotEquals(queryPrepareHandle2, null, "Query Execute Failed");
-    logger.info("PREPARE QUERY HANDLE : " + queryPrepareHandle2);
+    log.info("PREPARE QUERY HANDLE : " + queryPrepareHandle2);
 
     String endTime1 = String.valueOf(System.currentTimeMillis());
-    logger.info("End Time of 2nd Query : " + endTime1);
+    log.info("End Time of 2nd Query : " + endTime1);
 
     List<QueryPrepareHandle> list = qHelper.getPreparedQueryHandleList(null, null, sessionHandleString,
         startTime, endTime);
@@ -308,11 +307,11 @@ public class ITPreparedQueryTests extends BaseTestClass {
 
     QueryPrepareHandle queryPrepareHandle1 = qHelper.submitPreparedQuery(QueryInventory.QUERY);
     Assert.assertNotEquals(queryPrepareHandle1, null, "Query Execute Failed");
-    logger.info("PREPARE QUERY HANDLE : " + queryPrepareHandle1);
+    log.info("PREPARE QUERY HANDLE : " + queryPrepareHandle1);
 
     QueryPrepareHandle queryPrepareHandle2 = qHelper.submitPreparedQuery(QueryInventory.QUERY);
     Assert.assertNotEquals(queryPrepareHandle2, null, "Query Execute Failed");
-    logger.info("PREPARE QUERY HANDLE : " + queryPrepareHandle2);
+    log.info("PREPARE QUERY HANDLE : " + queryPrepareHandle2);
 
     Response response = qHelper.getPreparedQuery(queryPrepareHandle1);
     AssertUtil.assertSucceededResponse(response);
@@ -341,11 +340,11 @@ public class ITPreparedQueryTests extends BaseTestClass {
 
     QueryPrepareHandle queryPrepareHandle1 = qHelper.submitPreparedQuery(QueryInventory.QUERY, name1);
     Assert.assertNotEquals(queryPrepareHandle1, null, "Query Execute Failed");
-    logger.info("PREPARE QUERY HANDLE : " + queryPrepareHandle1);
+    log.info("PREPARE QUERY HANDLE : " + queryPrepareHandle1);
 
     QueryPrepareHandle queryPrepareHandle2 = qHelper.submitPreparedQuery(QueryInventory.QUERY, name2);
     Assert.assertNotEquals(queryPrepareHandle2, null, "Query Execute Failed");
-    logger.info("PREPARE QUERY HANDLE : " + queryPrepareHandle2);
+    log.info("PREPARE QUERY HANDLE : " + queryPrepareHandle2);
 
     Response response = qHelper.getPreparedQuery(queryPrepareHandle1);
     AssertUtil.assertSucceededResponse(response);
@@ -379,11 +378,11 @@ public class ITPreparedQueryTests extends BaseTestClass {
 
     QueryPrepareHandle queryPrepareHandle1 = qHelper.submitPreparedQuery(QueryInventory.QUERY);
     Assert.assertNotEquals(queryPrepareHandle1, null, "Query Execute Failed marker");
-    logger.info("PREPARE QUERY HANDLE : " + queryPrepareHandle1);
+    log.info("PREPARE QUERY HANDLE : " + queryPrepareHandle1);
 
     QueryPrepareHandle queryPrepareHandle2 = qHelper.submitPreparedQuery(QueryInventory.QUERY, null, session1);
     Assert.assertNotEquals(queryPrepareHandle2, null, "Query Execute Failed");
-    logger.info("PREPARE QUERY HANDLE : " + queryPrepareHandle2);
+    log.info("PREPARE QUERY HANDLE : " + queryPrepareHandle2);
 
     Response response = qHelper.getPreparedQuery(queryPrepareHandle1);
     Assert.assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
@@ -413,23 +412,23 @@ public class ITPreparedQueryTests extends BaseTestClass {
 
     //Submitting First Query
     String startTime = String.valueOf(System.currentTimeMillis());
-    logger.info("Start Time of 1st Query : " + startTime);
+    log.info("Start Time of 1st Query : " + startTime);
     QueryPrepareHandle queryPrepareHandle1 = qHelper.submitPreparedQuery(QueryInventory.QUERY);
     Assert.assertNotEquals(queryPrepareHandle1, null, "Query Execute Failed");
-    logger.info("PREPARE QUERY HANDLE : " + queryPrepareHandle1);
+    log.info("PREPARE QUERY HANDLE : " + queryPrepareHandle1);
     String endTime = String.valueOf(System.currentTimeMillis());
-    logger.info("End Time of 1st Query : " + endTime);
+    log.info("End Time of 1st Query : " + endTime);
 
     Thread.sleep(1000);
 
     //Submitting Second Query
     String startTime1 = String.valueOf(System.currentTimeMillis());
-    logger.info("Start Time of 2nd Query : " + startTime1);
+    log.info("Start Time of 2nd Query : " + startTime1);
     QueryPrepareHandle queryPrepareHandle2 = qHelper.submitPreparedQuery(QueryInventory.QUERY);
     Assert.assertNotEquals(queryPrepareHandle2, null, "Query Execute Failed");
-    logger.info("PREPARE QUERY HANDLE : " + queryPrepareHandle2);
+    log.info("PREPARE QUERY HANDLE : " + queryPrepareHandle2);
     String endTime1 = String.valueOf(System.currentTimeMillis());
-    logger.info("End Time of 2nd Query : " + endTime1);
+    log.info("End Time of 2nd Query : " + endTime1);
 
     Thread.sleep(1000);
 
@@ -458,7 +457,7 @@ public class ITPreparedQueryTests extends BaseTestClass {
 
     int size = result.getRows().size();
     for(int i=0; i<size; i++) {
-      logger.info(result.getRows().get(i).getValues().get(0) + " " + result.getRows().get(i).getValues().get(1));
+      log.info(result.getRows().get(i).getValues().get(0) + " " + result.getRows().get(i).getValues().get(1));
     }
     Assert.assertEquals(size, 2, "Wrong result");
     Assert.assertEquals(result.getRows().get(0).getValues().get(0), 2, "Wrong result");
@@ -475,18 +474,18 @@ public class ITPreparedQueryTests extends BaseTestClass {
     String session1 = sHelper.openSession(user2, pass2, lens.getCurrentDB());
 
     String startTime1=String.valueOf(System.currentTimeMillis());
-    logger.info("Start Time of first query- "+startTime1);
+    log.info("Start Time of first query- "+startTime1);
     QueryPrepareHandle queryPreparedHandle1= qHelper.submitPreparedQuery(QueryInventory.QUERY, queryName1);
     String endTime1=String.valueOf(System.currentTimeMillis());
-    logger.info("End Time of first query- "+endTime1);
+    log.info("End Time of first query- "+endTime1);
 
     Thread.sleep(1000);
 
     String startTime2=String.valueOf(System.currentTimeMillis());
-    logger.info("Start Time of second query- " + startTime2);
+    log.info("Start Time of second query- " + startTime2);
     QueryPrepareHandle queryPreparedHandle2=qHelper.submitPreparedQuery(QueryInventory.QUERY, queryName2, session1);
     String endTime2=String.valueOf(System.currentTimeMillis());
-    logger.info("End Time for second query- "+ endTime2);
+    log.info("End Time for second query- "+ endTime2);
 
     Thread.sleep(1000);
 
@@ -507,7 +506,7 @@ public class ITPreparedQueryTests extends BaseTestClass {
   @Test
   public void testExplainAndPrepareQuery() throws Exception {
     QueryPlan queryPlan = qHelper.explainAndPrepareQuery(QueryInventory.HIVE_CUBE_QUERY);
-    logger.info("Query Handle" + queryPlan.getPrepareHandle());
+    log.info("Query Handle" + queryPlan.getPrepareHandle());
     Assert.assertNotNull(queryPlan.getPrepareHandle(), "not returning queryhandle");
   }
 }

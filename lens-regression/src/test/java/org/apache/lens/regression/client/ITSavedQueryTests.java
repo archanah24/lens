@@ -39,19 +39,19 @@ import org.apache.lens.regression.util.AssertUtil;
 import org.apache.lens.server.api.LensConfConstants;
 import org.apache.lens.server.api.util.LensUtil;
 
-import org.apache.log4j.Logger;
-
 import org.testng.Assert;
 import org.testng.annotations.*;
 
 import com.google.common.collect.ImmutableSet;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class ITSavedQueryTests extends BaseTestClass {
 
   WebTarget servLens;
   private String sessionHandleString;
 
-  private static Logger logger = Logger.getLogger(ITSavedQueryTests.class);
 
   @BeforeClass(alwaysRun = true)
   public void initialize() throws Exception {
@@ -60,15 +60,15 @@ public class ITSavedQueryTests extends BaseTestClass {
 
   @BeforeMethod(alwaysRun = true)
   public void setUp(Method method) throws Exception {
-    logger.info("Test Name: " + method.getName());
-    logger.info("Creating a new Session");
+    log.info("Test Name: " + method.getName());
+    log.info("Creating a new Session");
     sessionHandleString = sHelper.openSession(lens.getCurrentDB());
   }
 
   @AfterMethod(alwaysRun = true)
   public void closeSession() throws Exception {
     deleteAllSavedQueries();
-    logger.info("Closing Session");
+    log.info("Closing Session");
     sHelper.closeSession();
   }
 
@@ -119,7 +119,7 @@ public class ITSavedQueryTests extends BaseTestClass {
     QueryHandle handle = savedQueryResourceHelper.runSavedQuery(rmr.getId(), session, paramMap).getData();
     qHelper.waitForCompletion(handle);
     PersistentQueryResult result = (PersistentQueryResult) qHelper.getResultSet(handle);
-    Assert.assertEquals(result.getNumRows().intValue(), 7);
+    Assert.assertEquals(result.getNumRows().intValue(), 2);
     //TODO : Do result validation. Check if it doesn't contain row having "second" field
 
     //running above created saved query with different parameter
@@ -127,7 +127,7 @@ public class ITSavedQueryTests extends BaseTestClass {
     handle = savedQueryResourceHelper.runSavedQuery(rmr.getId(), session, paramMap).getData();
     qHelper.waitForCompletion(handle);
     result = (PersistentQueryResult) qHelper.getResultSet(handle);
-    Assert.assertEquals(result.getNumRows().intValue(), 7);
+    Assert.assertEquals(result.getNumRows().intValue(), 2);
 
   }
 

@@ -36,18 +36,19 @@ import org.apache.lens.regression.core.testHelper.BaseTestClass;
 import org.apache.lens.regression.util.Util;
 import org.apache.lens.server.api.util.LensUtil;
 
-import org.apache.log4j.Logger;
-
 import org.testng.Assert;
 import org.testng.annotations.*;
 
+import lombok.extern.slf4j.Slf4j;
+
+
+@Slf4j
 public class ITDuplicateQueryTests extends BaseTestClass {
 
   WebTarget servLens;
   private String sessionHandleString;
 
   private String hiveDriverSitePath  = lens.getServerDir() + "/conf/drivers/hive/hive1/hivedriver-site.xml";
-  private static Logger logger = Logger.getLogger(ITDuplicateQueryTests.class);
 
   @BeforeClass(alwaysRun = true)
   public void initialize() throws Exception {
@@ -56,14 +57,14 @@ public class ITDuplicateQueryTests extends BaseTestClass {
 
   @BeforeMethod(alwaysRun = true)
   public void setUp(Method method) throws Exception {
-    logger.info("Test Name: " + method.getName());
-    logger.info("Creating a new Session");
+    log.info("Test Name: " + method.getName());
+    log.info("Creating a new Session");
     sessionHandleString = sHelper.openSession(lens.getCurrentDB());
   }
 
   @AfterMethod(alwaysRun = true)
   public void closeSession() throws Exception {
-    logger.info("Closing Session");
+    log.info("Closing Session");
     sHelper.closeSession();
   }
 

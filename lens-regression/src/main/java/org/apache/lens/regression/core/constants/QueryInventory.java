@@ -46,6 +46,12 @@ public class QueryInventory {
     return query;
   }
 
+  public static String getSleepQuery(String queryName, String time){
+    String queryStr = QueryInventory.getQueryFromInventory(queryName);
+    String query = String.format(queryStr, time);
+    return query;
+  }
+
   public static final String QUERY = "cube select id,name from sample_dim where name != 'first'";
   public static final String WRONG_QUERY = "cube select NO_ID from sample_dim where name != 'first'";
 
@@ -73,8 +79,8 @@ public class QueryInventory {
   public static final String WRONG_JDBC_DIM_QUERY = "cube select NO_ID from sample_db_dim where name != 'first'";
 
   public static final String SLEEP_FUNCTION = "CREATE TEMPORARY FUNCTION sleep AS 'hive.udf.SampleUdf'";
-  public static final String SLEEP_QUERY = "cube select sleep(name) from sample_dim where name != 'first'";
-  public static final String SLEEP_QUERY_TIME = "cube select sample_dim_chain.name, sleepTime(measure4,%s) from "
+  public static final String SLEEP_QUERY = "cube select sleepTime(name,2) from sample_dim where name != 'first'";
+  public static final String SLEEP_QUERY_TIME = "cube select dim1, sleepTime(measure4,%s) from "
       + "sample_cube where time_range_in(dt, '2014-06-24-23', '2014-06-25-00')";
 
   public static final String NO_CUBE_KEYWORD_QUERY = "select sample_dim_chain.name, measure4 from sample_cube where "

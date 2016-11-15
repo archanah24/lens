@@ -34,6 +34,8 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.ws.rs.client.*;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.xml.bind.*;
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -56,10 +58,23 @@ import org.apache.lens.api.metastore.ObjectFactory;
 import org.apache.lens.api.metastore.XProperties;
 import org.apache.lens.api.metastore.XProperty;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.HttpClients;
 
+
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
+
+import org.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -99,18 +114,43 @@ public class Util {
     return null;
   }
 
-  public static String getProperty(String property){
-    Properties prop = Util.getPropertiesObj(PROPERTY_FILE);
+  public static String getProperty(String property) {
+    Properties prop = getPropertiesObj(PROPERTY_FILE);
     return prop.getProperty(property);
   }
 
-  public static String runRemoteCommand(String command) throws JSchException, IOException {
+  public static String runRemoteCommand(String command, String url) throws Exception {
+
+    String bodyData = "{ \"cmd\":\"" + command + "\" }";
+    Client client = ClientBuilder.newClient(new ClientConfig().register(MultiPartFeature.class));
+    WebTarget webTarget = client.target(url).path("run");
+    Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_XML);
+    Response response = invocationBuilder.post(Entity.entity(bodyData, MediaType.APPLICATION_JSON));
+    String responseStr = response.readEntity(String.class);
+    JSONObject jsonObj = new JSONObject(responseStr);
+    log.info(jsonObj.toString());
+
+    if (!jsonObj.get("code").toString().equals("0")) {
+      log.info("******* Executing command failed");
+      throw new RuntimeException("CMD : " + command + "\nCommand execution failed\n ");
+    }
+
+    return jsonObj.get("stdout").toString();
+  }
+
+
+  public static String runRemoteCommand(String command) throws Exception {
+
+    if (getProperty("remote.ssh.implementation") != null) {
+      return runRemoteCommand(command, getProperty("remote.ssh-service.url"));
+    }
+
     StringBuilder outputBuffer = new StringBuilder();
     StringBuilder print = new StringBuilder();
 
-    String userName = Util.getProperty("lens.remote.username");
-    String host = Util.getProperty("lens.remote.host");
-    String password = Util.getProperty("lens.remote.password");
+    String userName = getProperty("lens.remote.username");
+    String host = getProperty("lens.remote.host");
+    String password = getProperty("lens.remote.password");
 
     log.info("Running command : {} on host : {} with user as {}", command, host, userName);
 
@@ -241,17 +281,28 @@ public class Util {
   }
 
   public static HashMap<String, String> stringListToMap(String paramList) throws Exception {
-    StringList stringList = (StringList) Util.getObject(paramList, StringList.class);
+    StringList stringList = (StringList) getObject(paramList, StringList.class);
     return stringListToMap(stringList);
   }
 
-  public static void changeConfig(HashMap<String, String> map, String remotePath) throws Exception {
+  public static void changeConfig(HashMap<String, String> map, String remotePath, String backupFile) throws Exception {
+
+    if (getProperty("remote.ssh.implementation") != null) {
+      changeConfig(map, remotePath, backupFile, getProperty("remote.ssh-service.url"));
+      return;
+    }
 
     Path p = Paths.get(remotePath);
     String fileName = p.getFileName().toString();
-    backupFile = localFilePath + "backup-" + fileName;
+    if (backupFile == null) {
+      backupFile = localFilePath + "backup-" + fileName;
+    } else {
+      backupFile = localFilePath + backupFile;
+    }
+
     localFile = localFilePath + fileName;
     log.info("Copying " + remotePath + " to " + localFile);
+    remoteFile("get", remotePath, localFile);
     remoteFile("get", remotePath, localFile);
     Files.copy(new File(localFile).toPath(), new File(backupFile).toPath(), REPLACE_EXISTING);
 
@@ -296,6 +347,75 @@ public class Util {
     }
     prettyPrint(doc);
     remoteFile("put", remotePath, localFile);
+  }
+
+  public static void changeConfig(HashMap<String, String> map, String remotePath) throws Exception {
+    changeConfig(map, remotePath, null);
+  }
+
+  public static void changeConfig(HashMap<String, String> map, String remotePath, String backupFile, String url)
+    throws Exception {
+
+    Path p = Paths.get(remotePath);
+    String fileName = p.getFileName().toString();
+    if (backupFile == null) {
+      backupFile = localFilePath + "backup-" + fileName;
+    } else {
+      backupFile = localFilePath + backupFile;
+    }
+
+    localFile = localFilePath + fileName;
+
+    Client client = ClientBuilder.newClient(new ClientConfig().register(MultiPartFeature.class));
+    WebTarget webTarget = client.target(url + "download?file=" + remotePath);
+    Invocation.Builder invocationBuilder = webTarget.request(MediaType.APPLICATION_XML);
+    Response response = invocationBuilder.get();
+    String filecontent = response.readEntity(String.class);
+
+    writeFile(backupFile, filecontent);
+    Files.copy(new File(backupFile).toPath(), new File(localFile).toPath(), REPLACE_EXISTING);
+
+    DocumentBuilder docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+    Document doc = docBuilder.parse(new FileInputStream(localFile));
+    doc.normalize();
+
+    NodeList rootNodes = doc.getElementsByTagName("configuration");
+    Node root = rootNodes.item(0);
+    Element rootElement = (Element) root;
+    NodeList property = rootElement.getElementsByTagName("property");
+
+    for (int i = 0; i < property.getLength(); i++) {  //Deleting redundant properties from the document
+      Node prop = property.item(i);
+      Element propElement = (Element) prop;
+      Node propChild = propElement.getElementsByTagName("name").item(0);
+
+      Element nameElement = (Element) propChild;
+      if (map.containsKey(nameElement.getTextContent())) {
+        rootElement.removeChild(prop);
+        i--;
+      }
+    }
+
+    Iterator<Entry<String, String>> ab = map.entrySet().iterator();
+    while (ab.hasNext()) {
+      Entry<String, String> entry = ab.next();
+      String propertyName = entry.getKey();
+      String propertyValue = entry.getValue();
+      System.out.println(propertyName + " " + propertyValue + "\n");
+      Node newNode = doc.createElement("property");
+      rootElement.appendChild(newNode);
+      Node newName = doc.createElement("name");
+      Element newNodeElement = (Element) newNode;
+
+      newName.setTextContent(propertyName);
+      newNodeElement.appendChild(newName);
+
+      Node newValue = doc.createElement("value");
+      newValue.setTextContent(propertyValue);
+      newNodeElement.appendChild(newValue);
+    }
+    prettyPrint(doc);
+    remoteCopyFile(url+"upload", localFile, remotePath);
   }
 
   /*
@@ -347,11 +467,27 @@ public class Util {
 
   }
 
-  public static void changeConfig(String remotePath) throws JSchException, SftpException {
+  public static void changeConfig(String remotePath, String backupFile) throws JSchException, SftpException,
+      IOException {
+
     String fileName = Paths.get(remotePath).getFileName().toString();
-    backupFile = localFilePath + "backup-" + fileName;
+    if (backupFile == null){
+      backupFile = localFilePath + "backup-" + fileName;
+    }else{
+      backupFile = localFilePath + backupFile;
+    }
     log.info("Copying " + backupFile + " to " + remotePath);
+
+    if (getProperty("remote.ssh.implementation") != null) {
+      remoteCopyFile(getProperty("remote.ssh-service.url") + "upload", backupFile, remotePath);
+      return;
+    }
+
     remoteFile("put", remotePath, backupFile);
+  }
+
+  public static void changeConfig(String remotePath) throws JSchException, SftpException, IOException {
+    changeConfig(remotePath, null);
   }
 
   public static Map<String, String> mapFromXProperties(XProperties xProperties) {
@@ -510,6 +646,29 @@ public class Util {
     Date dt = xcal.toGregorianCalendar().getTime();
     SimpleDateFormat sdf = new SimpleDateFormat(format);
     return sdf.format(dt);
+  }
+
+  public static void remoteCopyFile(String uploadUrl, String source, String destination) throws IOException {
+    CloseableHttpClient httpClient = HttpClients.createDefault();
+    log.info(uploadUrl);
+    HttpPost uploadFile = new HttpPost(uploadUrl);
+    MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+    File f = new File(source);
+    builder.addBinaryBody(
+        destination,
+        f,
+        ContentType.MULTIPART_FORM_DATA,
+        f.getName()
+    );
+    HttpEntity multipart = builder.build();
+    uploadFile.setEntity(multipart);
+    CloseableHttpResponse response = httpClient.execute(uploadFile);
+    StatusLine sl = response.getStatusLine();
+    log.info("status code: "+sl.getStatusCode());
+    if (sl.getStatusCode()!=200) {
+      throw new RuntimeException("copy failed !!!");
+    }
+    log.info("copy of "+destination+" succesful");
   }
 
 }

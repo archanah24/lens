@@ -48,7 +48,6 @@ import org.testng.Assert;
 import org.testng.annotations.*;
 
 import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.SftpException;
 
 public class ITPriorityTests extends BaseTestClass{
 
@@ -56,7 +55,6 @@ public class ITPriorityTests extends BaseTestClass{
   String sessionHandleString;
 
   LensServerHelper lens = getLensServerHelper();
-  MetastoreHelper mHelper = getMetastoreHelper();
   SessionHelper sHelper = getSessionHelper();
   QueryHelper qHelper = getQueryHelper();
 
@@ -64,6 +62,7 @@ public class ITPriorityTests extends BaseTestClass{
   String hiveDriverConfPath  = lens.getServerDir() + "/conf/drivers/" + hiveDriver + "/hivedriver-site.xml";
   String lensSiteConfPath = lens.getServerDir() + "/conf/lens-site.xml";
   private String jobUrl = lens.getJobConfUrl();
+  String url = lens.getParam("remote.ssh-service.url");
 
   public static final String COST_95 = QueryInventory.getQueryFromInventory("HIVE.COST_95");
   public static final String COST_60 = QueryInventory.getQueryFromInventory("HIVE.COST_60");
@@ -95,7 +94,7 @@ public class ITPriorityTests extends BaseTestClass{
   }
 
   @AfterClass(alwaysRun = true)
-  public void cleanup() throws IOException, JSchException, LensException, InterruptedException, SftpException {
+  public void cleanup() throws Exception {
     logger.info("Closing Session");
     sHelper.closeSession();
     Util.changeConfig(hiveDriverConfPath);

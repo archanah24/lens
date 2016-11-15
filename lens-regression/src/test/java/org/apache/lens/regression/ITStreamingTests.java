@@ -41,10 +41,6 @@ import org.apache.log4j.Logger;
 import org.testng.Assert;
 import org.testng.annotations.*;
 
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.SftpException;
-
-
 public class ITStreamingTests extends BaseTestClass {
 
   private WebTarget servLens;
@@ -89,7 +85,7 @@ public class ITStreamingTests extends BaseTestClass {
   }
 
   @AfterGroups("large_purge_interval")
-  public void restoreConfig() throws SftpException, JSchException, InterruptedException, LensException, IOException {
+  public void restoreConfig() throws Exception {
     Util.changeConfig(lensSiteConfPath);
     lens.restart();
   }

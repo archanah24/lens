@@ -58,13 +58,17 @@ import org.testng.annotations.*;
 
 import com.jcraft.jsch.JSchException;
 
+import lombok.extern.slf4j.Slf4j;
+
+
+@Slf4j
 public class ITSessionResourceTests extends BaseTestClass {
 
   WebTarget servLens;
   private String sessionHandleString;
 
   private final String hdfsJarPath = lens.getServerHdfsUrl() + "/tmp";
-  private final String localJarPath = new File("").getAbsolutePath() + "/lens-regression/target/testjars/";
+  private final String localJarPath = new File("").getAbsolutePath() + "/target/testjars/";
   private final String hiveUdfJar = "hiveudftest.jar";
   private final String serverResourcePath = "/tmp/regression/resources";
 
@@ -72,6 +76,7 @@ public class ITSessionResourceTests extends BaseTestClass {
   private static String newParamsValue = "false";
   private static String createSleepFunction = "CREATE TEMPORARY FUNCTION sleep AS 'SampleUdf'";
   private static Logger logger = Logger.getLogger(ITSessionResourceTests.class);
+  String url = lens.getParam("remote.ssh-service.url");
 
 
   @BeforeClass(alwaysRun = true)
@@ -209,7 +214,8 @@ public class ITSessionResourceTests extends BaseTestClass {
   @Test
   public void testListResources() throws Exception {
 
-    String path = serverResourcePath + "/" + hiveUdfJar;
+    String jar = "opencsv-2.3.jar";
+    String path = lens.getServerDir() + "/webapp/lens-server/WEB-INF/lib/" + jar;
     sHelper.addResourcesJar(path);
 
     MapBuilder query = new MapBuilder("sessionid", sessionHandleString);
@@ -218,7 +224,7 @@ public class ITSessionResourceTests extends BaseTestClass {
     StringList responseString = response.readEntity(StringList.class);
     List<String> jars = responseString.getElements();
     for (String t : jars) {
-      Assert.assertTrue(t.contains(hiveUdfJar));
+      Assert.assertTrue(t.contains(jar));
     }
   }
 

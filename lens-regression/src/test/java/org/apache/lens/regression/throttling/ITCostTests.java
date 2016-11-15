@@ -119,8 +119,9 @@ public class ITCostTests extends BaseTestClass {
 
     List<QueryStatus.Status> passStatus = Arrays.asList(QueryStatus.Status.SUCCESSFUL, QueryStatus.Status.RUNNING,
         QueryStatus.Status.EXECUTED);
+    String cost10LongRunningQuery = QueryInventory.getSleepQuery("HIVE.SLEEP_COST_10", "5");
 
-    QueryHandle h1 = (QueryHandle) qHelper.executeQuery(COST_10).getData();
+    QueryHandle h1 = (QueryHandle) qHelper.executeQuery(cost10LongRunningQuery).getData();
     QueryHandle jq1 = (QueryHandle) qHelper.executeQuery(JDBC_QUERY1).getData();
     QueryHandle h2 = (QueryHandle) qHelper.executeQuery(COST_60).getData();
     QueryHandle jq2 = (QueryHandle) qHelper.executeQuery(JDBC_QUERY1).getData();
@@ -130,6 +131,7 @@ public class ITCostTests extends BaseTestClass {
     Assert.assertEquals(qHelper.getQueryStatus(h2).getStatus(), QueryStatus.Status.RUNNING);
     Assert.assertEquals(qHelper.getQueryStatus(h3).getStatus(), QueryStatus.Status.QUEUED);
     Assert.assertTrue(passStatus.contains(qHelper.getQueryStatus(jq1).getStatus()));
+    Thread.sleep(1);
     Assert.assertTrue(passStatus.contains(qHelper.getQueryStatus(jq2).getStatus()));
 
     LensQuery lq1 = qHelper.waitForCompletion(h1);

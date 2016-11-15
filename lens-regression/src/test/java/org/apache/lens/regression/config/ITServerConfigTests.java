@@ -47,17 +47,16 @@ import org.apache.lens.regression.core.type.MapBuilder;
 import org.apache.lens.regression.util.AssertUtil;
 import org.apache.lens.regression.util.Util;
 import org.apache.lens.server.api.LensConfConstants;
-import org.apache.lens.server.api.error.LensException;
 import org.apache.lens.server.api.util.LensUtil;
-
-import org.apache.log4j.Logger;
 
 import org.testng.Assert;
 import org.testng.annotations.*;
 
 import com.jcraft.jsch.JSchException;
 
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class ITServerConfigTests extends BaseTestClass {
 
   private WebTarget servLens;
@@ -68,8 +67,6 @@ public class ITServerConfigTests extends BaseTestClass {
   private static String lensKillCmd = "ps -ef | grep -i lens | grep -v lens-client | grep -v \"grep\" | "
       + "awk '{print $2}' | xargs -L1 kill -9";
 
-  private static Logger logger = Logger.getLogger(ITServerConfigTests.class);
-
 
   @BeforeClass(alwaysRun = true)
   public void initialize() throws IOException, JSchException {
@@ -78,13 +75,13 @@ public class ITServerConfigTests extends BaseTestClass {
 
   @BeforeMethod(alwaysRun = true)
   public void setUp(Method method) throws Exception {
-    logger.info("Test Name: " + method.getName());
+    log.info("Test Name: " + method.getName());
     Util.runRemoteCommand("cp " + confFilePath + " " + backupConfFilePath);
   }
 
   @AfterMethod(alwaysRun = true)
-  public void restoreConfig() throws JSchException, IOException, LensException, InterruptedException {
-    logger.info("Executing after method\n");
+  public void restoreConfig() throws Exception {
+    log.info("Executing after method\n");
     Util.runRemoteCommand("cp " + backupConfFilePath + " " + confFilePath);
     lens.restart();
   }
@@ -375,7 +372,7 @@ public class ITServerConfigTests extends BaseTestClass {
 
       InMemoryQueryResult resultSet = (InMemoryQueryResult) qHelper.getResultSet(statsQuery, "0", "100");
       for (int i = 0; i < resultSet.getRows().size(); i++) {
-        logger.info(resultSet.getRows().get(i).toString());
+        log.info(resultSet.getRows().get(i).toString());
       }
       Assert.assertTrue(resultSet.getRows().contains(queryHandle), "lensStats are not Saved");
       Assert.assertTrue(resultSet.getRows().contains(queryHandle1), "lensStats are not Saved");

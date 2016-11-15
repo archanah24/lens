@@ -54,7 +54,7 @@ public abstract class ServiceManagerHelper {
 
   protected static String sessionHandleString;
   protected static WebTarget servLens;
-  protected Properties configProp = null;
+  protected static Properties configProp = null;
 
   public ServiceManagerHelper(String envFileName) {
     configProp = Util.getPropertiesObj(envFileName);
@@ -71,6 +71,17 @@ public abstract class ServiceManagerHelper {
     return servLens;
   }
 
+  public static WebTarget init(String url) {
+    Client client = ClientBuilder.newBuilder().register(MultiPartFeature.class).build();
+    servLens = client.target(UriBuilder.fromUri(url).build());
+    return servLens;
+  }
+
+  public String getParam(String key) {
+    return configProp.getProperty(key);
+  }
+
+
   public static WebTarget getServerLens() {
     return servLens;
   }
@@ -81,6 +92,10 @@ public abstract class ServiceManagerHelper {
 
   public String getBaseUrl() {
     return configProp.getProperty(LENS_BASE_URL);
+  }
+
+  public void setBaseUrl(String url) {
+    configProp.put(LENS_BASE_URL, url);
   }
 
   public String getAdminUrl() {

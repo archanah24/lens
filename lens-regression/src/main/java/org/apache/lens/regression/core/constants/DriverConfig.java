@@ -20,6 +20,8 @@
 package org.apache.lens.regression.core.constants;
 
 import org.apache.lens.driver.jdbc.JDBCDriverConfConstants;
+import org.apache.lens.server.api.driver.hooks.QueryCostBasedQueryHook;
+import org.apache.lens.server.api.driver.hooks.UserBasedQueryHook;
 import org.apache.lens.server.api.query.constraint.MaxConcurrentDriverQueriesConstraintFactory;
 import org.apache.lens.server.query.constraint.TotalQueryCostCeilingConstraintFactory;
 
@@ -43,7 +45,15 @@ public class DriverConfig {
       .class.getName();
   public static final String USER_COST_CONSTRAINT_FACTORY = TotalQueryCostCeilingConstraintFactory.class.getName();
 
-  //hook
-  public static final String USER_BASED_QUERY_HOOK = "org.apache.lens.server.api.driver.hooks.UserBasedQueryHook";
+  //user hook
+  public static final String USER_BASED_QUERY_HOOK = UserBasedQueryHook.class.getName();
+  public static final String ALLOWED_USERS = UserBasedQueryHook.ALLOWED_USERS;
+  public static final String DISALLOWED_USERS = UserBasedQueryHook.DISALLOWED_USERS;
+
+  //Query cost hook
+  public static final String QUERY_COST_BASED_QUERY_HOOK = QueryCostBasedQueryHook.class.getName();
+  public static final String ALLOWED_RANGE_SETS = QueryCostBasedQueryHook.ALLOWED_RANGE_SETS;
+  public static final String DISALLOWED_RANGE_SETS = QueryCostBasedQueryHook.DISALLOWED_RANGE_SETS;
+
 }
 
