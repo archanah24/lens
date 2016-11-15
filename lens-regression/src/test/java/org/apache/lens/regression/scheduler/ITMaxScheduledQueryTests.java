@@ -121,6 +121,7 @@ public class ITMaxScheduledQueryTests extends BaseTestClass {
     String j1 = scheduleHelper.submitJob(xJob, session);
     String j2 = scheduleHelper.submitNScheduleJob(xJob, session);
     scheduleHelper.updateJob(j2, "SUSPEND", session);
+
     Assert.assertEquals(scheduleHelper.getJobStatus(j2), SchedulerJobState.SUSPENDED);
     Response response = scheduleHelper.submitJobReturnResponse("submit", xJob, session);
     AssertUtil.assertBadRequest(response);

@@ -140,6 +140,7 @@
             <failIfNoTests>false</failIfNoTests>
             <forkedProcessTimeoutInSeconds>7200</forkedProcessTimeoutInSeconds>
             <redirectTestOutputToFile>true</redirectTestOutputToFile>
+	    <configfailurepolicy>continue</configfailurepolicy>
           </configuration>
         </plugin>
 

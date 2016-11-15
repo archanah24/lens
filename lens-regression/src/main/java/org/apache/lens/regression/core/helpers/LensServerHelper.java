@@ -52,7 +52,7 @@ public class LensServerHelper extends ServiceManagerHelper {
     Util.runRemoteCommand("bash /usr/local/lens/server/bin/lens-ctl start");
 
     Response response = this.exec("get", "", servLens, null, null, MediaType.TEXT_PLAIN_TYPE, MediaType.TEXT_PLAIN);
-    while (response == null && counter < 40) {
+    while (response == null && counter < 80) {
       log.info("Waiting for Lens server to come up ");
       Thread.sleep(1000);
       response = this.exec("get", "", servLens, null, null, MediaType.TEXT_PLAIN_TYPE, MediaType.TEXT_PLAIN);

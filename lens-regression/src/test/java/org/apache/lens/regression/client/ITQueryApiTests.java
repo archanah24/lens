@@ -28,6 +28,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.lens.api.LensConf;
+import org.apache.lens.api.Priority;
 import org.apache.lens.api.query.*;
 import org.apache.lens.api.result.LensAPIResult;
 import org.apache.lens.cube.parse.CubeQueryConfUtil;
@@ -449,6 +450,7 @@ public class ITQueryApiTests extends BaseTestClass {
       qHelper.waitForCompletion(q1);
       qHelper.waitForCompletion(q2);
 
+<<<<<<< 97fe26d3ca0db9b383c8d86feb6bb7b00cacdc7e
       String hiveDriverQuery = "INSERT OVERWRITE DIRECTORY \""+lens.getServerHdfsUrl()+"/tmp/lensreports/hdfsout/"
           + q1 + "\" ROW FORMAT SERDE 'org.apache.lens.lib.query.CSVSerde' STORED AS TEXTFILE SELECT "
           + "(sample_dim2.id), (sample_dim2.name) FROM "+lens.getCurrentDB()+".local_dim_table2 sample_dim2 WHERE "
@@ -456,6 +458,15 @@ public class ITQueryApiTests extends BaseTestClass {
 
       String jdbcDriverQuery = "SELECT (sample_db_dim.id), (sample_db_dim.name) FROM " + lens.getCurrentDB()
           + ".mydb_dim_table3 sample_db_dim WHERE ((((sample_db_dim.name) != 'first')))";
+=======
+      String hiveDriverQuery = "INSERT OVERWRITE DIRECTORY \""+lens.getServerHdfsUrl()+"/tmp/lensreports/hdfsout/" +
+          q1 + "\" ROW FORMAT SERDE 'org.apache.lens.lib.query.CSVSerde' STORED AS TEXTFILE SELECT " +
+          "(sample_dim2.id), (sample_dim2.name) FROM "+lens.getCurrentDB()+".local_dim_table2 sample_dim2 WHERE " +
+          "((((sample_dim2.name) != 'first') AND ((sample_dim2.dt = 'latest'))))";
+
+      String jdbcDriverQuery = "SELECT (sample_db_dim.id), (sample_db_dim.name) FROM " + lens.getCurrentDB() +
+          ".mydb_dim_table3 sample_db_dim WHERE ((((sample_db_dim.name) != 'first')))";
+>>>>>>> develop patch
 
       //Waiting for query to get purged
       Thread.sleep(5000);

@@ -42,5 +42,8 @@ public class DriverConfig {
   public static final String MAX_CONCURRENT_CONSTRAINT_FACTORY = MaxConcurrentDriverQueriesConstraintFactory
       .class.getName();
   public static final String USER_COST_CONSTRAINT_FACTORY = TotalQueryCostCeilingConstraintFactory.class.getName();
+
+  //hook
+  public static final String USER_BASED_QUERY_HOOK = "org.apache.lens.server.api.driver.hooks.UserBasedQueryHook";
 }
 
